@@ -84,7 +84,8 @@ jobs:
     - name: Build firmware
       working-directory: ./openwrt
       run: |      
-        make -j$(nproc) V=s
+        #make -j$(nproc) V=s
+        make V=s -j1
         
     - name: Assemble Artifact
       id: assemble_artifact
