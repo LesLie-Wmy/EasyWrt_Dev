@@ -3,6 +3,11 @@ name: redmi-ax6000-immortalwrt-23.05
 on: 
   repository_dispatch:
   workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
 
 # 定时触发编译
   schedule:
@@ -68,11 +73,19 @@ jobs:
         sed -i "s/DISTRIB_DESCRIPTION='*.*'/DISTRIB_DESCRIPTION='EasyWrt-Redmi-AX6000-$(date +%Y%m%d)'/g"  package/base-files/files/etc/openwrt_release
               
     - name: Configuration Customization - Build_mt7986_ax6000
+      if: github.event.inputs.ssh != 'true' || contains(github.event.action, 'ssh')
       env:
         CONFIG_FILE: './configs/ARM/mt798x/mt7986_ax6000_23.05.config'
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         cd openwrt && make defconfig
+
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@v1.0.0
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         
     - name: Download package
       working-directory: ./openwrt
